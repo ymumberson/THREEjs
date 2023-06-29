@@ -1,4 +1,5 @@
-// import "./style.css";
+// import { OrbitControls } from "OrbitControls";
+// const {OrbitControls} = require("./OrbitControls");
 
 // Scene
 const scene = new THREE.Scene();
@@ -29,6 +30,9 @@ const FOV = 45;
 const camera = new THREE.PerspectiveCamera(FOV, sizes.width / sizes.height);
 camera.position.z = 20;
 scene.add(camera);
+
+// Controls
+// const controls = new OrbitControls(camera, canvas);
 
 // Renderer
 const canvas = document.querySelector(".webgl");
