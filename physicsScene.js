@@ -4,7 +4,7 @@ import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import * as CANNON from "cannon";
 
 class PhysicsScene {
-    constructor(canvas_width, canvas_height, fov, aspect_ratio, camera_position) {
+    constructor(canvas_width, canvas_height, fov, aspect_ratio, camera_position, camera_lookat) {
         this.scene = new THREE.Scene();
         this.world = new CANNON.World();
         this.world.gravity.set(0,0,-9.82); // m/s^2
@@ -14,14 +14,19 @@ class PhysicsScene {
         // Light
         const light = new THREE.PointLight(0xffffff, 1, 100);
         light.position.set(0, -10, 10);
-        light.intensity = 1.25;
+        light.intensity = 1;
+        light.castShadow = true;
         this.scene.add(light);
+
+        const ambient_light = new THREE.AmbientLight( 0x404040 ); // soft white light
+        this.scene.add( ambient_light );
 
         // Camera
         this.camera = new THREE.PerspectiveCamera(fov, aspect_ratio);
         this.camera.position.x = camera_position[0];
         this.camera.position.y = camera_position[1];
         this.camera.position.z = camera_position[2];
+        this.camera.lookAt(new THREE.Vector3(camera_lookat[0],camera_lookat[1],camera_lookat[2]));
         this.scene.add(this.camera);
 
         // Renderer
@@ -29,6 +34,8 @@ class PhysicsScene {
         this.renderer = new THREE.WebGLRenderer({
             canvas: canvas
         });
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.renderer.setSize(canvas_width, canvas_height);
         this.renderer.setPixelRatio(2);
         this.renderer.render(this.scene, this.camera);
@@ -82,6 +89,8 @@ class PhysicsScene {
             roughness: 0.5,
         });
         const mesh = new THREE.Mesh(geometry, material);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
         this.scene.add(mesh);
         this.render_world.push(mesh);
 
@@ -94,18 +103,35 @@ class PhysicsScene {
         this.physics_world.push(sphereBody);
     }
 
-    AddPlane() {
-        const geometry = new THREE.PlaneGeometry( 10000 , 10000 );
-        const material = new THREE.MeshBasicMaterial( {color: 0x009A17, side: THREE.DoubleSide} );
-        const plane = new THREE.Mesh( geometry, material );
-        this.scene.add( plane ); 
+    AddFloor() {
+        this.AddCube(10000,10000,1, 0x009A17, [0,0,0], 0);
+    }
 
-        var groundBody = new CANNON.Body({
-            mass: 0 // mass == 0 makes the body static
-        });
-        var groundShape = new CANNON.Plane();
-        groundBody.addShape(groundShape);
-        this.world.addBody(groundBody);
+    AddCube(width, height, depth, colour, position, mass) {
+        const cube = new THREE.Mesh(
+            new THREE.PlaneGeometry(width, width, 10, 10),
+            new THREE.MeshStandardMaterial({
+                color: colour,
+              }));
+        cube.position.x = position[0];
+        cube.position.y = position[1];
+        cube.position.z = position[2];
+        cube.castShadow = false;
+        cube.receiveShadow = true;
+        this.scene.add(cube);
+        this.render_world.push(cube);
+
+        const boxShape = new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2));
+        const boxBody = new CANNON.Body({ mass: mass, shape: boxShape });
+        const friction = 1; // Adjust this value as needed (0 to 1, where 0 is no friction and 1 is high friction)
+        const rectangleMaterial = new CANNON.Material();
+        rectangleMaterial.friction = friction;
+        rectangleMaterial.frictionEquationStiffness = 1e6; // Optionally adjust the friction stiffness
+        
+        // Assign the material to the body
+        boxBody.material = rectangleMaterial;
+        this.world.addBody(boxBody);
+        this.physics_world.push(boxBody);
     }
 }
 
