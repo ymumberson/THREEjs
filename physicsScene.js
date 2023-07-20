@@ -81,7 +81,7 @@ class PhysicsScene {
         requestAnimationFrame(this.SimulationLoop);
     }
 
-    AddSphere(radius, colour, mass, position) {
+    AddSphere(radius, colour, position, mass) {
         const SEGMENTS = 64;
         const geometry = new THREE.SphereGeometry(radius, SEGMENTS, SEGMENTS);
         const material = new THREE.MeshStandardMaterial({
@@ -104,12 +104,16 @@ class PhysicsScene {
     }
 
     AddFloor() {
-        this.AddCube(10000,10000,1, 0x009A17, [0,0,0], 0);
+        this.AddRectangle(10000,10000, 1, 0x009A17, [0,0,0], 0);
     }
 
-    AddCube(width, height, depth, colour, position, mass) {
+    AddCube(width, colour, position, mass) {
+        this.AddRectangle(width, width, width, colour, position, mass);
+    }
+
+    AddRectangle(width, height, depth, colour, position, mass) {
         const cube = new THREE.Mesh(
-            new THREE.PlaneGeometry(width, width, 10, 10),
+            new THREE.BoxGeometry(width, height, depth, 10, 10, 10),
             new THREE.MeshStandardMaterial({
                 color: colour,
               }));
@@ -123,31 +127,19 @@ class PhysicsScene {
 
         const boxShape = new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2));
         const boxBody = new CANNON.Body({ mass: mass, shape: boxShape });
-        const friction = 1; // Adjust this value as needed (0 to 1, where 0 is no friction and 1 is high friction)
-        const rectangleMaterial = new CANNON.Material();
-        rectangleMaterial.friction = friction;
-        rectangleMaterial.frictionEquationStiffness = 1e6; // Optionally adjust the friction stiffness
+        boxBody.position.x = position[0];
+        boxBody.position.y = position[1];
+        boxBody.position.z = position[2];
+        // const friction = 1; // Adjust this value as needed (0 to 1, where 0 is no friction and 1 is high friction)
+        // const rectangleMaterial = new CANNON.Material();
+        // rectangleMaterial.friction = friction;
+        // rectangleMaterial.frictionEquationStiffness = 1e6; // Optionally adjust the friction stiffness
         
-        // Assign the material to the body
-        boxBody.material = rectangleMaterial;
+        // // Assign the material to the body
+        // boxBody.material = rectangleMaterial;
         this.world.addBody(boxBody);
         this.physics_world.push(boxBody);
     }
 }
-
-// // Controls
-// const controls = new OrbitControls(camera, canvas);
-// controls.enableDamping = true;
-// controls.enablePan = false;
-// controls.enableZoom = false;
-// // controls.autoRotate = true;
-// // controls.autoRotateSpeed = 5;
-
-// const loop = () => {
-//     controls.update();
-//     renderer.render(scene, camera);
-//     window.requestAnimationFrame(loop);
-// }
-// loop();
 
 export { PhysicsScene };
