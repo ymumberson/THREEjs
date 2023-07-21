@@ -149,24 +149,16 @@ class PhysicsScene {
         return phys_mesh;
     }
 
-    Remove(phys_mesh) {
-        // this.scene.remove(phys_mesh.mesh);
-        // this.world.remove(phys_mesh.body);
-        // for (var i=0; i<this.physics_meshes.length; ++i) {
-        //     if (this.physics_meshes[i] === phys_mesh) {
-        //         this.physics_meshes.splice(i,1);
-        //         break;
-        //     }
-        // }
+    RemovePhysicsMesh(phys_mesh) {
         for (var i=0; i<this.physics_meshes.length; ++i) {
             if (this.physics_meshes[i] === phys_mesh) {
-                return this.Remove(i);
+                return this.RemoveAtIndex(i);
             }
         }
         return false;
     }
 
-    Remove(index) {
+    RemoveAtIndex(index) {
         if (index > -1 && index < this.physics_meshes.length) {
             this.scene.remove(this.physics_meshes[index].mesh);
             this.world.remove(this.physics_meshes[index].body);
@@ -174,6 +166,13 @@ class PhysicsScene {
             return true;
         }
         return false;
+    }
+
+    GetPhysicsMesh(index) {
+        if (index > -1 && index < this.physics_meshes.length) {
+            return this.physics_meshes[index];
+        }
+        return null;
     }
 }
 
