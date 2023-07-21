@@ -30,10 +30,16 @@ my_scene.AddFloor();
 // }
 
 await new Promise(r => setTimeout(r, 2000));
+let ls = [];
 for (var i=0; i<100; ++i) {
-    my_scene.AddCube(1, 0x00ff83, [Math.random()*10,Math.random()*10,20], 10);
+    ls.push(my_scene.AddCube(1, 0x00ff83, [Math.random()*10,Math.random()*10,20], 10));
     // await new Promise(r => setTimeout(r, 100));
     // my_scene.AddRectangle(Math.random()*1,Math.random()*1,Math.random()*1, 0x00ff83, [Math.random()*10,Math.random()*10,20], 10);
+}
+
+for (var i=0; i<100; ++i) {
+    console.log(my_scene.Remove(ls[i]));
+    await new Promise(r => setTimeout(r, 100));
 }
 
 // await new Promise(r => setTimeout(r, 5000));
@@ -42,3 +48,11 @@ for (var i=0; i<100; ++i) {
 //     my_scene.AddCube(rnd, 0x00ff83, [Math.random()*10,Math.random()*10,20], rnd);
 //     await new Promise(r => setTimeout(r, 500));
 // }
+
+// console.log("Starting to remove!");
+// await new Promise(r => setTimeout(r, 3000));
+// for (var i=0; i<100; ++i) {
+//     my_scene.Remove(3);
+//     await new Promise(r => setTimeout(r, 10));
+// }
+// console.log("Finished removing!");

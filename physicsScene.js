@@ -8,8 +8,7 @@ class PhysicsScene {
         this.scene = new THREE.Scene();
         this.world = new CANNON.World();
         this.world.gravity.set(0,0,-9.82); // m/s^2
-        this.physics_world = [];
-        this.render_world = [];
+        this.physics_meshes = [];
 
         // Light
         const light = new THREE.PointLight(0xffffff, 1, 100);
@@ -52,8 +51,8 @@ class PhysicsScene {
 
         console.log('Created new physics scene!');
 
+        /* Material code from https://github.com/pmndrs/cannon-es/blob/master/examples/friction.html */
         this.my_material = new CANNON.Material('my_material');
-
         const my_material_and_my_material = new CANNON.ContactMaterial(this.my_material, this.my_material, {
             friction: 0.4,
             restitution: 0.3,
@@ -76,15 +75,8 @@ class PhysicsScene {
         this.world.step(this.deltaTime, elapsedMilliseconds / 1000, this.maxSubSteps);
     
         // Update the objects in your scene based on the updated physics simulation
-        for (var i=0; i<this.physics_world.length; ++i) {
-            this.render_world[i].position.x = this.physics_world[i].position.x;
-            this.render_world[i].position.y = this.physics_world[i].position.y;
-            this.render_world[i].position.z = this.physics_world[i].position.z;
-
-            this.render_world[i].quaternion.x = this.physics_world[i].quaternion.x;
-            this.render_world[i].quaternion.y = this.physics_world[i].quaternion.y;
-            this.render_world[i].quaternion.z = this.physics_world[i].quaternion.z;
-            this.render_world[i].quaternion.w = this.physics_world[i].quaternion.w;
+        for (var i=0; i<this.physics_meshes.length; ++i) {
+            this.physics_meshes[i].Synchronize();
         }
 
         // Call the render function to draw the updated scene (if you are using Three.js or other rendering library)
@@ -106,7 +98,6 @@ class PhysicsScene {
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         this.scene.add(mesh);
-        this.render_world.push(mesh);
 
         var sphereBody = new CANNON.Body({
             mass: mass, //kg
@@ -114,17 +105,19 @@ class PhysicsScene {
             shape: new CANNON.Sphere(radius),
             material: this.my_material,
         });
-
         this.world.addBody(sphereBody);
-        this.physics_world.push(sphereBody);
+
+        let phys_mesh = new PhysicsMesh(mesh, sphereBody);
+        this.physics_meshes.push(phys_mesh);
+        return phys_mesh;
     }
 
     AddFloor() {
-        this.AddRectangle(10000,10000, 1, 0x009A17, [0,0,0], 0);
+        return this.AddRectangle(10000,10000, 1, 0x009A17, [0,0,0], 0);
     }
 
     AddCube(width, colour, position, mass) {
-        this.AddRectangle(width, width, width, colour, position, mass);
+        return this.AddRectangle(width, width, width, colour, position, mass);
     }
 
     AddRectangle(width, height, depth, colour, position, mass) {
@@ -139,7 +132,6 @@ class PhysicsScene {
         cube.castShadow = true;
         cube.receiveShadow = true;
         this.scene.add(cube);
-        this.render_world.push(cube);
 
         const boxShape = new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2));
         const boxBody = new CANNON.Body({
@@ -150,10 +142,57 @@ class PhysicsScene {
         boxBody.position.x = position[0];
         boxBody.position.y = position[1];
         boxBody.position.z = position[2];
-
         this.world.addBody(boxBody);
-        this.physics_world.push(boxBody);
+
+        let phys_mesh = new PhysicsMesh(cube, boxBody);
+        this.physics_meshes.push(phys_mesh);
+        return phys_mesh;
+    }
+
+    Remove(phys_mesh) {
+        // this.scene.remove(phys_mesh.mesh);
+        // this.world.remove(phys_mesh.body);
+        // for (var i=0; i<this.physics_meshes.length; ++i) {
+        //     if (this.physics_meshes[i] === phys_mesh) {
+        //         this.physics_meshes.splice(i,1);
+        //         break;
+        //     }
+        // }
+        for (var i=0; i<this.physics_meshes.length; ++i) {
+            if (this.physics_meshes[i] === phys_mesh) {
+                return this.Remove(i);
+            }
+        }
+        return false;
+    }
+
+    Remove(index) {
+        if (index > -1 && index < this.physics_meshes.length) {
+            this.scene.remove(this.physics_meshes[index].mesh);
+            this.world.remove(this.physics_meshes[index].body);
+            this.physics_meshes.splice(index,1);
+            return true;
+        }
+        return false;
     }
 }
 
-export { PhysicsScene };
+class PhysicsMesh {
+    constructor(mesh, body) {
+        this.mesh = mesh;
+        this.body = body;
+    }
+
+    Synchronize() {
+        this.mesh.position.y = this.body.position.y;
+        this.mesh.position.x = this.body.position.x;
+        this.mesh.position.z = this.body.position.z;
+
+        this.mesh.quaternion.x = this.body.quaternion.x;
+        this.mesh.quaternion.y = this.body.quaternion.y;
+        this.mesh.quaternion.z = this.body.quaternion.z;
+        this.mesh.quaternion.w = this.body.quaternion.w;
+    }
+}
+
+export { PhysicsScene, PhysicsMesh };
