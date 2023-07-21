@@ -51,6 +51,20 @@ class PhysicsScene {
         this.SimulationLoop();
 
         console.log('Created new physics scene!');
+
+        this.my_material = new CANNON.Material('my_material');
+
+        const my_material_and_my_material = new CANNON.ContactMaterial(this.my_material, this.my_material, {
+            friction: 0.4,
+            restitution: 0.3,
+            contactEquationStiffness: 1e8,
+            contactEquationRelaxation: 3,
+            frictionEquationStiffness: 1e8,
+            frictionEquationRegularizationTime: 3,
+          })
+  
+          // Add contact material to the world
+          this.world.addContactMaterial(my_material_and_my_material)
     }
     
     SimulationLoop() {
@@ -97,8 +111,10 @@ class PhysicsScene {
         var sphereBody = new CANNON.Body({
             mass: mass, //kg
             position: new CANNON.Vec3(position[0],position[1],position[2]), // m
-            shape: new CANNON.Sphere(radius)
+            shape: new CANNON.Sphere(radius),
+            material: this.my_material,
         });
+
         this.world.addBody(sphereBody);
         this.physics_world.push(sphereBody);
     }
@@ -120,23 +136,21 @@ class PhysicsScene {
         cube.position.x = position[0];
         cube.position.y = position[1];
         cube.position.z = position[2];
-        cube.castShadow = false;
+        cube.castShadow = true;
         cube.receiveShadow = true;
         this.scene.add(cube);
         this.render_world.push(cube);
 
         const boxShape = new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2));
-        const boxBody = new CANNON.Body({ mass: mass, shape: boxShape });
+        const boxBody = new CANNON.Body({
+            mass: mass,
+            shape: boxShape,
+            material: this.my_material
+        });
         boxBody.position.x = position[0];
         boxBody.position.y = position[1];
         boxBody.position.z = position[2];
-        // const friction = 1; // Adjust this value as needed (0 to 1, where 0 is no friction and 1 is high friction)
-        // const rectangleMaterial = new CANNON.Material();
-        // rectangleMaterial.friction = friction;
-        // rectangleMaterial.frictionEquationStiffness = 1e6; // Optionally adjust the friction stiffness
-        
-        // // Assign the material to the body
-        // boxBody.material = rectangleMaterial;
+
         this.world.addBody(boxBody);
         this.physics_world.push(boxBody);
     }
