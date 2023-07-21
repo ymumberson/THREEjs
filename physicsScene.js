@@ -49,8 +49,6 @@ class PhysicsScene {
         this.SimulationLoop = this.SimulationLoop.bind(this);
         this.SimulationLoop();
 
-        console.log('Created new physics scene!');
-
         /* Material code from https://github.com/pmndrs/cannon-es/blob/master/examples/friction.html */
         this.my_material = new CANNON.Material('my_material');
         const my_material_and_my_material = new CANNON.ContactMaterial(this.my_material, this.my_material, {
@@ -60,10 +58,15 @@ class PhysicsScene {
             contactEquationRelaxation: 3,
             frictionEquationStiffness: 1e8,
             frictionEquationRegularizationTime: 3,
-          })
+        })
   
-          // Add contact material to the world
-          this.world.addContactMaterial(my_material_and_my_material)
+        // Add contact material to the world
+        this.world.addContactMaterial(my_material_and_my_material)
+
+        this.loader = new THREE.TextureLoader();
+        this.texture1 = this.loader.load('brick1.jpg');
+
+        console.log('Created new physics scene!');
     }
     
     SimulationLoop() {
@@ -125,6 +128,35 @@ class PhysicsScene {
             new THREE.BoxGeometry(width, height, depth, 10, 10, 10),
             new THREE.MeshStandardMaterial({
                 color: colour,
+              }));
+        cube.position.x = position[0];
+        cube.position.y = position[1];
+        cube.position.z = position[2];
+        cube.castShadow = true;
+        cube.receiveShadow = true;
+        this.scene.add(cube);
+
+        const boxShape = new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2));
+        const boxBody = new CANNON.Body({
+            mass: mass,
+            shape: boxShape,
+            material: this.my_material
+        });
+        boxBody.position.x = position[0];
+        boxBody.position.y = position[1];
+        boxBody.position.z = position[2];
+        this.world.addBody(boxBody);
+
+        let phys_mesh = new PhysicsMesh(cube, boxBody);
+        this.physics_meshes.push(phys_mesh);
+        return phys_mesh;
+    }
+
+    AddBrick(width, height, depth, colour, position, mass) {
+        const cube = new THREE.Mesh(
+            new THREE.BoxGeometry(width, height, depth, 10, 10, 10),
+            new THREE.MeshStandardMaterial({
+                map: this.texture1,
               }));
         cube.position.x = position[0];
         cube.position.y = position[1];
