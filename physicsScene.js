@@ -116,7 +116,7 @@ class PhysicsScene {
     }
 
     AddFloor() {
-        return this.AddRectangle(10000,10000, 1, 0x009A17, [0,0,0], 0);
+        return this.AddRectangle(10000,10000, 1, 0x009A17, [0,0,-0.5], 0);
     }
 
     AddCube(width, colour, position, mass) {
