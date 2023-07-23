@@ -9,9 +9,9 @@ const sizes = {
     height: window.innerHeight
 }
 const FOV = 45;
-const camera_position = new THREE.Vector3(0,-20,1);
-const camera_lookat = new THREE.Vector3(0, 0, 0);
-let my_scene = new PhysicsScene(sizes.width, sizes.height, FOV, sizes.width / sizes.height, [0, -100, 30], [0, 0, 0]);
+const camera_position = [0, -50, 15];
+const camera_lookat = [0, 0, 0];
+let my_scene = new PhysicsScene(sizes.width, sizes.height, FOV, sizes.width / sizes.height, camera_position, camera_lookat);
 my_scene.AddSphere(1, 0xf050ff, [0,0,10], 10);
 my_scene.AddSphere(3, 0xf0ff83, [6,0,10], 5);
 
@@ -23,9 +23,9 @@ let brick_height = 0.5;
 let brick_width = 1;
 let brick_depth = 0.3;
 let offset = 0;
-let wall_pos = [0,-20,0];
 let wall_width = 20;
 let wall_height = 10;
+let wall_pos = [0-(wall_width*brick_width/2),-15,0];
 for (var i=0; i<wall_height; ++i) {
     for (var j=0; j<wall_width; ++j) {
         if (i % 2 !== 0 && j===wall_width-1) continue;
@@ -57,7 +57,7 @@ my_scene.AddSphere(0.5, 0xf00083, [wall_pos[0]+(wall_width*brick_width/2),wall_p
 await new Promise(r => setTimeout(r, 2000));
 let ls = [];
 for (var i=0; i<100; ++i) {
-    ls.push(my_scene.AddCube(1, 0x00ff83, [Math.random()*10,Math.random()*10,20], 10));
+    ls.push(my_scene.AddCube(1, 0x00ff83, [-5+Math.random()*10,-5+Math.random()*10,20], 10));
     // await new Promise(r => setTimeout(r, 100));
     // my_scene.AddRectangle(Math.random()*1,Math.random()*1,Math.random()*1, 0x00ff83, [Math.random()*10,Math.random()*10,20], 10);
 }
